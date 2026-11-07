@@ -2,7 +2,12 @@ const CACHE='festival-pos-v5';
 const LOCAL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png'];
 const SDK=['https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js','https://www.gstatic.com/firebasejs/11.6.1/firebase-auth-compat.js','https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js'];
 const LOCAL_URLS=LOCAL.map(p=>new URL(p,self.registration.scope).href);
-self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>Promise.allSettled([...LOCAL_URLS,...SDK].map(u=>c.add(new Request(u,{cache:'reload'})))))))});
+self.addEventListener('install', e => {
+ self.skipWaiting();
+ e.waitUntil(caches.open(CACHE).then(c => {
+  return Promise.allSettled([...LOCAL_URLS, ...SDK].map(u => c.add(new Request(u, {cache:'reload'}))));
+ }));
+});
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k.startsWith('festival-pos-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{
  const r=e.request;if(r.method!=='GET')return;
