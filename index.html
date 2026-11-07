@@ -428,7 +428,7 @@ function syncInit(){
  try{
   firebase.initializeApp(FIREBASE_CONFIG);
   FB.auth=firebase.auth();FB.db=firebase.firestore();
-  FB.db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+  FB.db.enablePersistence().catch(()=>{});
   FB.auth.getRedirectResult().then(r=>{if(r&&r.user)toast('Cloud sync signed in as '+(r.user.email||''))}).catch(e=>{if(e&&e.code)toast('Cloud sign-in failed: '+(e.message||e),'err')});
   FB.auth.onAuthStateChanged(u=>{FB.user=u;const st=syncState();
    if(u){st.uid=u.uid;st.email=u.email||'';persistSync(st);
@@ -443,7 +443,11 @@ function syncInit(){
 window.syncSignIn=function(){
  if(!window.firebase||!FB.auth)return toast('Cloud sync library not loaded. Connect to the internet and reload.','err');
  const p=new firebase.auth.GoogleAuthProvider();
- FB.auth.signInWithRedirect(p);
+ FB.auth.signInWithPopup(p).catch(e=>{
+  if(e&&(e.code==='auth/popup-blocked'||e.code==='auth/popup-closed-by-user'||e.code==='auth/cancelled-popup-request')){
+   if(e.code==='auth/popup-blocked')FB.auth.signInWithRedirect(p);
+  }else if(e&&e.code){toast('Cloud sign-in failed: '+(e.message||e),'err')}
+ });
 };
 window.syncSignOut=function(){if(FB.auth)FB.auth.signOut();const st=syncState();st.armed=false;persistSync(st);toast('Signed out of cloud sync. Data on this device is unchanged.');if(page==='settings')render()};
 window.syncNow=function(){const st=syncState();if(!st.armed||!FB.user)return toast('Set up cloud sync first','warn');syncPush(true)};
