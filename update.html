@@ -1,0 +1,22 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Update Shree Festival POS</title><style>body{font:17px system-ui;max-width:620px;margin:48px auto;padding:24px;background:#f2f5f3;color:#18251f}main{background:white;padding:28px;border-radius:16px}button{font:inherit;background:#176b40;color:white;border:0;border-radius:8px;padding:14px 22px;cursor:pointer}button:disabled{opacity:.6}p{line-height:1.55}#status{white-space:pre-line}</style><main><h1>Update your POS app</h1><p>This refreshes the app code only. It does not erase your products, photos, sales, backups, or saved sign-in.</p><p>Connect to the internet first. Finish any open sale and leave other POS tabs idle. Keep your exported JSON backup.</p><button id="update">Update app and reopen</button><p id="status" role="status">No records will be uploaded or downloaded by this page.</p></main><script>
+const button=document.getElementById('update'),status=document.getElementById('status');
+button.onclick=async()=>{
+ button.disabled=true;
+ try{
+  if(!navigator.onLine)throw new Error('You are offline. Reconnect first; nothing has changed.');
+  const base=new URL('./',location.href),scope=base.href;
+  if(base.pathname!=='/Pos/')throw new Error('Wrong app location. No changes made.');
+  status.textContent='Checking the current app is reachable...';
+  const target=new URL('index.html',base);target.searchParams.set('appUpdate',Date.now());
+  const response=await fetch('https://raw.githubusercontent.com/gauravvchaurasiya-a11y/Pos/main/index.html?check='+Date.now(),{cache:'no-store',credentials:'omit'});if(!response.ok)throw new Error('The app could not be reached. Try again when connected.');
+  const html=await response.text();if(!html.includes('Cloud Sync (Google)'))throw new Error('The update is not available yet. Your records are unchanged.');
+  status.textContent='Refreshing app files. Your records are not being changed...';
+  const regs=await navigator.serviceWorker.getRegistrations();
+  for(const r of regs){if(r.scope===scope)await r.unregister();}
+  const keys=await caches.keys();
+  for(const key of keys){if(/^festival-pos-v[0-9]+$/.test(key))await caches.delete(key);}
+  status.textContent='Update ready. Reopening your POS...';
+  location.replace(target.href);
+ }catch(e){status.textContent=e.message||String(e);button.disabled=false;}
+};
+</script></html>
