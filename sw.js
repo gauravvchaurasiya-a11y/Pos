@@ -1,4 +1,4 @@
-const CACHE='festival-pos-v3';
+const CACHE='festival-pos-v4';
 const ASSETS=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js','https://www.gstatic.com/firebasejs/11.6.1/firebase-auth-compat.js','https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
